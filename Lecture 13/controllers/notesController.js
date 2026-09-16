@@ -1,7 +1,13 @@
 const { notes } = require("../models/data")
 
 const getNotes = (req,res)=>{
-    res.status(200).send(notes)
+  
+  try{
+      res.status(200).send(notes)
+  }catch(err){
+    console.log(err,"Sorry notes nhi mil payege aapko")
+    res.status(500).send(err)
+  }
 }
 
 const getNoteById =(req,res)=>{
