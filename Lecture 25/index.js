@@ -1,6 +1,8 @@
 const express = require("express")
 const morgan = require("morgan")
+const db =require("./config/db")
 const app = express();
+db();
 const noteRoutes = require("./routes/noteRoutes")
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
