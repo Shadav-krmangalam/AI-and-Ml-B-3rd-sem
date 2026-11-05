@@ -1,4 +1,5 @@
 const express = require("express")
+require("dotenv").config()
 const morgan = require("morgan")
 const db =require("./config/db")
 const app = express();
@@ -14,6 +15,6 @@ app.use("/api",noteRoutes)
 app.use("/user",userRoutes)
 
 
-app.listen(3000,()=>{
-    console.log("Server is running on PORT 3000")
+app.listen(process.env.PORT,()=>{
+    console.log(`Server is running on PORT: ${process.env.PORT}`)
 })
