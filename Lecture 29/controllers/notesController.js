@@ -1,71 +1,98 @@
-const { notes } = require("../models/data")
+const notesSchema = require("../models/notes")
 
-const getNotes = (req,res)=>{
+const getNotes =async (req,res)=>{
   
   try{
-      res.status(200).send(notes)
+    let userId = req.user;
+    console.log(userId)
+      let notes = await notesSchema.find({user:userId}).sort({ createdAt: -1 }); 
+
+     
+     res.status(200).send(notes);
+
   }catch(err){
     console.log(err,"Sorry notes nhi mil payege aapko")
     res.status(500).send(err)
   }
 }
 
-const getNoteById =(req,res)=>{
-    let {id} = req.params;
+const getNoteById =async(req,res)=>{
+  try{
+      let {id} = req.params;
+     let userId = req.user;
 
-   let element =  notes.find(note=> note.id === Number(id))
-   if(!element){
+   let note =  await notesSchema.findOne({
+       _id:id,
+       user:userId
+   })
+   if(!note){
     return res.status(404).send("Data Not Found")
    }
 
-   res.status(200).send(element)
+   res.status(200).send(note)
+
+  }catch(err){
+res.status(500).send(err)
+  }
 }
 
-const createNote = (req,res)=>{
-    let {title,description,link,author,createdOn,note} = req.body
+const createNote =async (req,res)=>{
+  try{
+   
+      let {title,description,referenceLink,authorName,notes,category} = req.body
+      let userId = req.user;
 
-    let newData = {
-        id:notes.length +1,
-        title:title,
-        description:description,
-        note:note,
-        link:link,
-        author:author,
-        createdOn:createdOn
 
+    if(!title||!notes||!userId||!category){
+        return res.status(400).send("required Credentials are needed")
     }
 
-    notes.push(newData);
+   await notesSchema.create({title,description,referenceLink,authorName,notes,user:userId,category})
     res.status(201).send("Note Added Successfully")
+  }catch(err){
+    res.status(500).send(err)
+  }
 }
 
 
-const updateNote = (req,res)=>{
-    let {id} = req.params;
+const updateNote =async (req,res)=>{
+try{
+        let {id} = req.params;
+    let userId=req.user;
+     let {title,description,referenceLink,file,authorName,notes,category} = req.body
 
-    const note = notes.find(note => note.id === Number(id))
+    let note = await notesSchema.findOneAndUpdate({_id:id,user:userId},{$set:{title,description,referenceLink,file,authorName,notes,category}},{new:true,runValidators:true})
+    
 
-    if(!note) {
-        return res.status(404).send("Data Not Found")
-    }
 
-    Object.assign(note,req.body)
-    res.status(200).send("Note Updated")
+if (!note) {
+    return res.status(404).send("Note not found");
 }
 
-const deleteNote = (req,res)=>{
-    let {id} = req.params;
-    const note = notes.find(note=> note.id === Number(id))
+res.status(200).json({
+    message: "Note Updated Successfully",
+    note
+});
+}catch(err){
+    res.status(500).send(err)
+}
+}
 
-    if(!note){
-        return res.status(404).send("Data not found")
-    }
+const deleteNote =async (req,res)=>{
+try{
+        let {id} = req.params;
+    let userId = req.user
+    let note = await notesSchema.findOneAndDelete({_id:id,user:userId})
+   
+if (!note) {
+    return res.status(404).send("Note not found");
+}
 
-    let index =  notes.indexOf(note)
-    notes.splice(index,1)
-
-    res.status(200).send("Dekho woh chala gaya")
+    res.status(200).send("Note has been Deleted successfully")
 
 
+}catch(err){
+    res.status(500).send(err)
+}
 }
 module.exports = {getNotes,getNoteById,createNote,updateNote,deleteNote}

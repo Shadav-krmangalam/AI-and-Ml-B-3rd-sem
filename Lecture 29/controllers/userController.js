@@ -1,22 +1,24 @@
 const userSchema = require("../models/user");
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
+const event = require("../events/eventEmitters")
 
 const signup =async (req,res)=>{
-    let {name,email,course,password,age} = req.body;
+    event.emit("apicount")
+    let {name,email,password} = req.body;
 
-    if(!name ||!email||!password||!age){
+    if(!name ||!email||!password){
         return res.status(403).send("Invalid details")
     }
 
     let salt = await bcrypt.genSalt(10);
     let hashedPassword = await bcrypt.hash(password,salt)
 
-   let user =  await userSchema.create({name,email,course,password:hashedPassword,age})
+   let user =  await userSchema.create({name,email,password:hashedPassword})
 
   let token = jwt.sign(
     {
-        email:user.email
+        user:user._id
     },
     process.env.SECRET_KEY,
     {
@@ -38,15 +40,20 @@ const login = async(req,res)=>{
     if(!email || !password){
         return res.status(403).send("Invalid Credentials")
     }
-    let user = await userSchema.findOne({email});
+    let user = await userSchema.findOne({email})
+    
+    if(!email){
+        return res.status(404).send("Not found")
+    }
 
-    if(password!==user.password){
+    let isMatch = await bcrypt.compare(password,user.password)
+    if(!isMatch){
         return res.status(401).send("Unauthorized")
     }
 
      let token = jwt.sign(
     {
-        email:user.email
+        user:user._id
     },
     process.env.SECRET_KEY,
     {
@@ -62,6 +69,13 @@ const login = async(req,res)=>{
 
 
 const dummy = async(req,res)=>{
-    
+    let token = req.cookies.token
+
+    if(!token){
+        return res.status(401).send("Unauthorized")
+    }
+    let data = jwt.verify(token,process.env.SECRET_KEY)
+    console.log(data)
+    res.status(200).send("Access granted")
 }
-module.exports = {signup,login};
+module.exports = {signup,login,dummy};

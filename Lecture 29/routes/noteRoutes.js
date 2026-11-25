@@ -3,10 +3,10 @@ const { getNotes, createNote, getNoteById, updateNote, deleteNote } = require(".
 const { isAuthorized, isLoggedIn } = require("../middlewares/isAuthorized")
 const router = express.Router()
 
-router.get("/notes",isAuthorized,isLoggedIn,getNotes)
-router.get("/notes/:id",isAuthorized,isLoggedIn,getNoteById)
-router.post("/notes",createNote)
-router.put("/update-note/:id",updateNote)
-router.delete("/delete-note/:id",deleteNote)
+router.get("/notes",isLoggedIn,getNotes)
+router.get("/notes/:id",isLoggedIn,getNoteById)
+router.post("/notes",isLoggedIn,createNote)
+router.put("/update-note/:id",isLoggedIn,updateNote)
+router.delete("/delete-note/:id",isLoggedIn,deleteNote)
 
 module.exports = router

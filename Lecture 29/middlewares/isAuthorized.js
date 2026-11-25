@@ -1,3 +1,4 @@
+const jwt = require("jsonwebtoken")
 const isAuthorized = (req,res,next)=>{
     let token =  req.headers.cookie;
 
@@ -9,13 +10,18 @@ const isAuthorized = (req,res,next)=>{
 }
 
 
-const isLoggedIn = (req,res,next)=>{
-    let login= false;
+const isLoggedIn =async (req,res,next)=>{
+   let token = req.cookies.token;
 
-    if(!login){
-        return res.status(401).send("Bhai tu phir agaya")
-    }
-    next()
+   if(!token){
+    return res.status(401).send("Unauthorized")
+   }
+  let data = await jwt.verify(token,process.env.SECRET_KEY)
+
+ 
+ req.user =data.user
+  next()
+
 }
 
 module.exports = {isAuthorized,isLoggedIn}
